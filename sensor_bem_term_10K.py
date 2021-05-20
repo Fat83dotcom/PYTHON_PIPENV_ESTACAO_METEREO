@@ -129,65 +129,72 @@ def call_tempo():
 
 
 def main():
-    tempo_graf = int(flagEntry())
-    inicio = data()
-    ux = []
-    uy = []
-    px = []
-    py = []
-    t1x = []
-    t1y = []
-    t2x = []
-    t2y = []
-    d1 = {
-        'u': '',
-        'p': '',
-        '1': '',
-        '2': '',
-    }
+    cont3 = 0
+    while 1:
+        if cont3 == 0:
+            print(f'Inicio: --> {data()} <--')
+            tempo_graf = int(flagEntry())
+        else:
+            print(f'Parcial {cont3} --> {data()} <--')
+        inicio = data()
+        ux = []
+        uy = []
+        px = []
+        py = []
+        t1x = []
+        t1y = []
+        t2x = []
+        t2y = []
+        d1 = {
+            'u': '',
+            'p': '',
+            '1': '',
+            '2': '',
+        }
 
-    cont2 = 0
-    while cont2 < tempo_graf:
-        cont = 0
-        while cont < 8:
-            dado = str(arduino.readline())
-            dado = dado[2:-5]
-            try:
-                if dado[0] == 'u':
-                    d1['u'] = dado[1:].strip()
-                if dado[0] == 'p':
-                    d1['p'] = dado[1:].strip()
-                if dado[0] == '1':
-                    d1['1'] = dado[1:].strip()
-                if dado[0] == '2':
-                    d1['2'] = dado[1:].strip()
-            except IndexError:
-                continue
-            cont += 1
-        with open('log_bme280.csv', 'a+', newline='', encoding='utf-8') as file:
-            try:
-                w = csv.writer(file)
-                w.writerow([data(), d1['u'], d1['p'], d1['1'], d1['2']])
-                ux.append(cont2)
-                uy.append(float(d1['u']))
-                px.append(cont2)
-                py.append(float(d1['p']))
-                t1x.append(cont2)
-                t1y.append(float(d1['1']))
-                t2x.append(cont2)
-                t2y.append(float(d1['2']))
-                cont2 += 1
-                time.sleep(1)
-            except ValueError:
-                print('error')
-                continue
-    plot_umidade(ux, uy, inicio)
-    plot_pressao(px, py, inicio)
-    plot_temp1(t1x, t1y, inicio)
-    plot_temp2(t2x, t2y, inicio)
+        cont2 = 0
+        while cont2 < tempo_graf:
+            cont = 0
+            while cont < 8:
+                dado = str(arduino.readline())
+                dado = dado[2:-5]
+                try:
+                    if dado[0] == 'u':
+                        d1['u'] = dado[1:].strip()
+                    if dado[0] == 'p':
+                        d1['p'] = dado[1:].strip()
+                    if dado[0] == '1':
+                        d1['1'] = dado[1:].strip()
+                    if dado[0] == '2':
+                        d1['2'] = dado[1:].strip()
+                except IndexError:
+                    continue
+                cont += 1
+            with open('log_bme280.csv', 'a+', newline='', encoding='utf-8') as file:
+                try:
+                    w = csv.writer(file)
+                    w.writerow([data(), d1['u'], d1['p'], d1['1'], d1['2']])
+                    ux.append(cont2)
+                    uy.append(float(d1['u']))
+                    px.append(cont2)
+                    py.append(float(d1['p']))
+                    t1x.append(cont2)
+                    t1y.append(float(d1['1']))
+                    t2x.append(cont2)
+                    t2y.append(float(d1['2']))
+                    cont2 += 1
+                    time.sleep(1)
+                except ValueError:
+                    print('error')
+                    continue
+        plot_umidade(ux, uy, inicio)
+        plot_pressao(px, py, inicio)
+        plot_temp1(t1x, t1y, inicio)
+        plot_temp2(t2x, t2y, inicio)
+        cont3 += 1
 
 
-while True:
+while 1:
     print(f'-> Inicio {data()}')
     main()
     print(f'-> Termino {data()}')
