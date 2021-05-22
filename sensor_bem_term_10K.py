@@ -9,7 +9,7 @@ from email.mime.application import MIMEApplication
 import smtplib
 from confidentials import meu_email, minha_senha
 
-set_porta = '/dev/ttyACM1'
+set_porta = '/dev/ttyACM0'
 
 while set_porta:
     try:
@@ -31,13 +31,14 @@ class EmailThread(Thread):
         msg['from'] = 'Fernando Mendes'
         msg['to'] = meu_email
         msg['subject'] = f'Monitoramento Estação Metereologica Fat83dotcom {data()}'
-        corpo = MIMEText(f'Gráficos ,{data()}')
+        corpo = MIMEText(f'Gráficos, {data()}')
         msg.attach(corpo)
         try:
             umidade = f'/home/fernando/Área de Trabalho/UMIDADE/Umidade{self.inicio}.pdf'
             pressao = f'/home/fernando/Área de Trabalho/PRESSAO/Pressao{self.inicio}.pdf'
             tmp1 = f'/home/fernando/Área de Trabalho/TEMP1/Temperatura_Interna{self.inicio}.pdf'
             temp2 = f'/home/fernando/Área de Trabalho/TEMP2/Temperatura_Externa{self.inicio}.pdf'
+            # log = '/home/fernando/PYTHON_PIPENV_ESTACAO_METEREO/log_bme280.csv'
 
             with open(umidade, 'rb') as pdf_U:
                 anexo_U = MIMEApplication(pdf_U.read(), _subtype='pdf')
@@ -62,6 +63,12 @@ class EmailThread(Thread):
                 pdf_T2.close()
                 anexo_T2.add_header('Conteudo', temp2)
                 msg.attach(anexo_T2)
+
+            # with open(log, 'rb') as csv_file:
+            #     anexo_csv = MIMEApplication(csv_file.read(), _subtype='csv')
+            #     csv_file.close()
+            #     anexo_csv.add_header('Conteudo', log)
+            #     msg.attach(anexo_csv)
 
             with smtplib.SMTP(host='smtp.gmail.com', port=587) as smtp:
                 smtp.ehlo()
@@ -149,12 +156,11 @@ def flagEntry():
     tentativa = 5
     while opition == '' and cont < tentativa:
         print(f'{cont  + 1}ª tentativa... {tentativa - (cont + 1)} restantes.')
-        opition = input(
-            'Deseja definir a frequencia dos gráficos ? ').upper()
+        opition = input('Deseja definir a frequencia dos gráficos ?[S/N]: ').upper()
         if opition[0] == 'S':
             call = call_tempo()
             if call:
-                print(f'Tempo definido em {call} segundos.')
+                print('Em Execução ....')
                 return int(call)
             else:
                 cont += 1
@@ -264,8 +270,4 @@ def main():
 
 
 while 1:
-    print(f'-> Inicio {data()}')
     main()
-    print(f'-> Termino {data()}')
-    print('-----------------------')
-arduino.close()
