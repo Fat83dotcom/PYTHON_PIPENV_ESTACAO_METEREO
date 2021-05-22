@@ -9,7 +9,7 @@ from email.mime.application import MIMEApplication
 import smtplib
 from confidentials import meu_email, minha_senha
 
-set_porta = '/dev/ttyACM0'
+set_porta = '/dev/ttyACM1'
 
 while set_porta:
     try:
@@ -17,7 +17,7 @@ while set_porta:
         arduino.reset_input_buffer()
         break
     except serial.serialutil.SerialException:
-        set_porta = input('Digite a porta serial em que o Arduino está conectada: ')
+        set_porta = input('Digite a porta serial em que o Arduino está conectado: ')
 print(f'O Arduino está na porta: {set_porta}')
 
 
@@ -74,6 +74,30 @@ class EmailThread(Thread):
             return None
 
 
+class ConvertTempo:
+    def __init__(self, hora=None, minuto=None, segundo=None):
+        self.hora = hora
+        self.minuto = minuto
+        self.segundo = segundo
+
+    def convert_hr_segundo(self):
+        conv_hr_sec = self.hora * 3600
+        return conv_hr_sec
+
+    def convert_min_segundo(self):
+        conv_min_sec = self.minuto * 60
+        return conv_min_sec
+
+    def soma_tempo(self):
+        h = self.hora
+        m = self.minuto
+        s = self.segundo
+        soma = ConvertTempo(hora=h, minuto=m, segundo=s)
+        soma = soma.convert_hr_segundo() + soma.convert_min_segundo()
+        soma += self.segundo
+        return soma
+
+
 def data():
     data = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
     return data
@@ -117,30 +141,6 @@ def plot_temp2(t2x, t2y, inicio):
     plt.plot(t2x, t2y)
     plt.savefig(file)
     plt.clf()
-
-
-class ConvertTempo:
-    def __init__(self, hora=None, minuto=None, segundo=None):
-        self.hora = hora
-        self.minuto = minuto
-        self.segundo = segundo
-
-    def convert_hr_segundo(self):
-        conv_hr_sec = self.hora * 3600
-        return conv_hr_sec
-
-    def convert_min_segundo(self):
-        conv_min_sec = self.minuto * 60
-        return conv_min_sec
-
-    def soma_tempo(self):
-        h = self.hora
-        m = self.minuto
-        s = self.segundo
-        soma = ConvertTempo(hora=h, minuto=m, segundo=s)
-        soma = soma.convert_hr_segundo() + soma.convert_min_segundo()
-        soma += self.segundo
-        return soma
 
 
 def flagEntry():
