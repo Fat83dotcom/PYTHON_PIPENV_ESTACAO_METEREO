@@ -2,8 +2,15 @@ import serial
 import time
 import csv
 import matplotlib.pyplot as plt
+from threading import Thread
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+import smtplib
+from confidentials import meu_email, minha_senha
 
 set_porta = '/dev/ttyACM0'
+
 while set_porta:
     try:
         arduino = serial.Serial(set_porta, 9600)
@@ -11,6 +18,60 @@ while set_porta:
         break
     except serial.serialutil.SerialException:
         set_porta = input('Digite a porta serial em que o Arduino está conectada: ')
+print(f'O Arduino está na porta: {set_porta}')
+
+
+class EmailThread(Thread):
+    def __init__(self, inicio):
+        super().__init__()
+        self.inicio = inicio
+
+    def run(self):
+        msg = MIMEMultipart()
+        msg['from'] = 'Fernando Mendes'
+        msg['to'] = meu_email
+        msg['subject'] = f'Monitoramento Estação Metereologica Fat83dotcom {data()}'
+        corpo = MIMEText(f'Gráficos ,{data()}')
+        msg.attach(corpo)
+        try:
+            umidade = f'/home/fernando/Área de Trabalho/UMIDADE/Umidade{self.inicio}.pdf'
+            pressao = f'/home/fernando/Área de Trabalho/PRESSAO/Pressao{self.inicio}.pdf'
+            tmp1 = f'/home/fernando/Área de Trabalho/TEMP1/Temperatura_Interna{self.inicio}.pdf'
+            temp2 = f'/home/fernando/Área de Trabalho/TEMP2/Temperatura_Externa{self.inicio}.pdf'
+
+            with open(umidade, 'rb') as pdf_U:
+                anexo_U = MIMEApplication(pdf_U.read(), _subtype='pdf')
+                pdf_U.close()
+                anexo_U.add_header('Conteudo', umidade)
+                msg.attach(anexo_U)
+
+            with open(pressao, 'rb') as pdf_P:
+                anexo_P = MIMEApplication(pdf_P.read(), _subtype='pdf')
+                pdf_P.close()
+                anexo_P.add_header('Conteudo', pressao)
+                msg.attach(anexo_P)
+
+            with open(tmp1, 'rb') as pdf_T1:
+                anexo_T1 = MIMEApplication(pdf_T1.read(), _subtype='pdf')
+                pdf_T1.close()
+                anexo_T1.add_header('Conteudo', tmp1)
+                msg.attach(anexo_T1)
+
+            with open(temp2, 'rb') as pdf_T2:
+                anexo_T2 = MIMEApplication(pdf_T2.read(), _subtype='pdf')
+                pdf_T2.close()
+                anexo_T2.add_header('Conteudo', temp2)
+                msg.attach(anexo_T2)
+
+            with smtplib.SMTP(host='smtp.gmail.com', port=587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.login(meu_email, minha_senha)
+                smtp.send_message(msg)
+                print('Email enviado com sucesso.')
+        except FileNotFoundError:
+            print('Email não enviado.')
+            return None
 
 
 def data():
@@ -118,7 +179,13 @@ def call_tempo():
         if 0 <= int(minuto) < 60 and 0 <= int(segundo) < 60:
             flag_entry = ConvertTempo(int(hora), int(minuto), int(segundo))
             flag_entry = flag_entry.soma_tempo()
-            return int(flag_entry)
+            if flag_entry > 10800:
+                flag_entry = 10800
+                print(f'Tempo definido em {flag_entry} segundos/ {flag_entry/3600} horas.')
+                return int(flag_entry)
+            else:
+                print(f'Tempo definido em {flag_entry} segundos/ {flag_entry/3600} horas.')
+                return int(flag_entry)
         else:
             print('Digite os minutos e segundos entre 0 e 59.')
             return None
@@ -160,14 +227,14 @@ def main():
                 dado = dado[2:-5]
                 try:
                     if dado[0] == 'u':
-                        d1['u'] = dado[1:].strip()
+                        d1['u'] = float(dado[1:].strip())
                     if dado[0] == 'p':
-                        d1['p'] = dado[1:].strip()
+                        d1['p'] = float(dado[1:].strip())
                     if dado[0] == '1':
-                        d1['1'] = dado[1:].strip()
+                        d1['1'] = float(dado[1:].strip())
                     if dado[0] == '2':
-                        d1['2'] = dado[1:].strip()
-                except IndexError:
+                        d1['2'] = float(dado[1:].strip())
+                except (ValueError, IndexError):
                     continue
                 cont += 1
             with open('log_bme280.csv', 'a+', newline='', encoding='utf-8') as file:
@@ -192,6 +259,8 @@ def main():
         plot_temp1(t1x, t1y, inicio)
         plot_temp2(t2x, t2y, inicio)
         cont3 += 1
+        emaail = EmailThread(inicio)
+        emaail.start()
 
 
 while 1:
