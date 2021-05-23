@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 import smtplib
-from confidentials import meu_email, minha_senha
+from confidentials import meu_email, minha_senha, my_recipients
 
 set_porta = '/dev/ttyACM0'
 
@@ -29,7 +29,7 @@ class EmailThread(Thread):
     def run(self):
         msg = MIMEMultipart()
         msg['from'] = 'Fernando Mendes'
-        msg['to'] = meu_email
+        msg['to'] = ', '.join(my_recipients)
         msg['subject'] = f'Monitoramento Estação Metereologica Fat83dotcom {data()}'
         corpo = MIMEText(f'Gráficos, {data()}')
         msg.attach(corpo)
