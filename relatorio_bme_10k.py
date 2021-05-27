@@ -1,22 +1,26 @@
-# import matplotlib.pyplot as plt
-# import sys
+import matplotlib.pyplot as plt
 from datetime import date
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+import smtplib
+from confidentials import meu_email, minha_senha, my_recipients
+import time
 
 
 class Periodo:
 
     def data_inicio(self, dia=str, mes=str, ano=str, hora=str, minuto=str, segundo=str):
-        data_ini = f'{dia} {mes} {ano} {hora}:{minuto}:{segundo}'
+        data_ini = f'{dia} {mes} {ano} {hora}:{minuto}'
         return data_ini
 
     def data_termino(self, dia=str, mes=str, ano=str, hora=str, minuto=str, segundo=str):
-        data_ter = f'{dia} {mes} {ano} {hora}:{minuto}:{segundo}'
+        data_ter = f'{dia} {mes} {ano} {hora}:{minuto}'
         return data_ter
 
 
-
 def entry_inicio():
-    meses_ano = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    meses_ano = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
     retorno = Periodo()
     entrada = False
     while not entrada:
@@ -33,8 +37,8 @@ def entry_inicio():
                 continue
         mes = ''
         while not mes:
-            mes = input('Digite o mês(MMM): ')
-            if mes.isalpha() and len(mes) == 3:
+            mes = input('Digite o mês(MMM): ').title()
+            if mes.isalpha() and len(mes) == 3 or len(mes) == 4:
                 for mes1 in meses_ano:
                     if mes1 == mes:
                         break
@@ -79,21 +83,21 @@ def entry_inicio():
                 print('Digite somente 2 números entre 00 e 59.')
                 minuto = ''
                 continue
-        segundo = ''
-        while not segundo:
-            segundo = input('Digite os segundos(SS): ')
-            if segundo.isnumeric() and len(segundo) == 2 and 0 <= int(segundo) <= 59:
-                break
-            else:
-                print('Digite somente 2 números entre 00 e 59.')
-                segundo = ''
-                continue
+        # segundo = ''
+        # while not segundo:
+        #     segundo = input('Digite os segundos(SS): ')
+        #     if segundo.isnumeric() and len(segundo) == 2 and 0 <= int(segundo) <= 59:
+        #         break
+        #     else:
+        #         print('Digite somente 2 números entre 00 e 59.')
+        #         segundo = ''
+        #         continue
         entrada = True
-        return retorno.data_inicio(dia, mes, ano, hora, minuto, segundo)
+        return retorno.data_inicio(dia, mes, ano, hora, minuto)
 
 
 def entry_termino():
-    meses_ano = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    meses_ano = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
     retorno = Periodo()
     entrada = False
     while not entrada:
@@ -110,8 +114,8 @@ def entry_termino():
                 continue
         mes = ''
         while not mes:
-            mes = input('Digite o mês(MMM): ')
-            if mes.isalpha() and len(mes) == 3:
+            mes = input('Digite o mês(MMM): ').title()
+            if mes.isalpha() and len(mes) == 3 or len(mes) == 4:
                 for mes1 in meses_ano:
                     if mes1 == mes:
                         break
@@ -156,39 +160,124 @@ def entry_termino():
                 print('Digite somente 2 números entre 00 e 59.')
                 minuto = ''
                 continue
-        segundo = ''
-        while not segundo:
-            segundo = input('Digite os segundos(SS): ')
-            if segundo.isnumeric() and len(segundo) == 2 and 0 <= int(segundo) <= 59:
-                break
-            else:
-                print('Digite somente 2 números entre 00 e 59.')
-                segundo = ''
-                continue
+        # segundo = ''
+        # while not segundo:
+        #     segundo = input('Digite os segundos(SS): ')
+        #     if segundo.isnumeric() and len(segundo) == 2 and 0 <= int(segundo) <= 59:
+        #         break
+        #     else:
+        #         print('Digite somente 2 números entre 00 e 59.')
+        #         segundo = ''
+        #         continue
         entrada = True
-        return retorno.data_termino(dia, mes, ano, hora, minuto, segundo)
+        return retorno.data_termino(dia, mes, ano, hora, minuto)
 
 
-with open('log_bme280.csv', 'r', encoding='utf-8', newline='') as file:
-    file.seek(0)
-    lista = [x.split(',') for x in file.readlines()]
-    lista0 = [x[0] for x in lista]
-    # lista1 = [x[1] for x in lista]
-    # lista2 = [x[2] for x in lista]
-    # lista3 = [x[3] for x in lista]
-    # lista4 = [x[4].splitlines() for x in lista]
-    # print(lista0[-1][:2])
-    # print(sys.getsizeof(lista))
-    # print(next(lista))
-    if '23 May 2021 11:25:57' in lista0:
-        valor1 = '23 May 2021 11:25:57'
-        valor2 = '26 May 2021 18:09:17'
-        pos1 = lista0.index(valor1)
-        pos2 = lista0.index(valor2)
-        diferenca = pos2 - pos1
-        print(lista[pos1][1])
-        print(pos1)
-        print(pos2)
-        print(diferenca)
-    for dados in lista[pos1:pos2]:
-        print(dados)
+def plot_graf(y, inicio, termino, nome):
+    x = range(len(y))
+    minima = min(y)
+    maxima = max(y)
+    cont_titulo = f'{nome} mínima: {minima} {nome} máxima{maxima}'
+    titulo = f'-> Inicio: {inicio} <-\n->Termino: {termino} <-\nGráfico {nome}: {cont_titulo}'
+    plt.title(titulo)
+    plt.xlabel('Tempo em segundos.')
+    if nome == 'Umidade':
+        plt.ylabel('Umidade Relativa do Ar(%).')
+    elif nome == 'Pressao':
+        plt.ylabel('Pressão em hPa.')
+    elif nome == 'Temp Interna':
+        plt.ylabel('Temperatura em °C.')
+    else:
+        plt.ylabel('Temperatura em °C.')
+    plt.plot(x, y)
+    plt.savefig(f'/home/fernando/Área de Trabalho/{nome}.pdf')
+    plt.clf()
+
+
+def data():
+    data = time.strftime('%d %b %Y %H:%M:%S', time.localtime())
+    return data
+
+
+def main():
+    with open('log_bme280.csv', 'r', encoding='utf-8', newline='') as file:
+        file.seek(0)
+        lista = [x.split(',') for x in file.readlines()]
+        lista0 = [x[0][:-3] for x in lista]
+        inicio = entry_inicio()
+        termino = entry_termino()
+        if inicio in lista0:
+            valor1 = inicio
+            try:
+                valor2 = termino
+            except ValueError:
+                print('O valor final não foi encontrado.')
+                return None
+            pos1 = lista0.index(valor1)
+            pos2 = lista0.index(valor2)
+        else:
+            print('O valor inicial não foi encontrado.')
+            return None
+        try:
+            umi = [float(x[1]) for x in lista[pos1:pos2]]
+            pres = [float(x[2]) for x in lista[pos1:pos2]]
+            temp1 = [float(x[3]) for x in lista[pos1:pos2]]
+            temp2 = [float(x[4][:-2])for x in lista[pos1:pos2]]
+            plot_graf(umi, inicio, termino, 'Umidade')
+            plot_graf(pres, inicio, termino, 'Pressao')
+            plot_graf(temp1, inicio, termino, 'Temp Int')
+            plot_graf(temp2, inicio, termino, 'Temp Ext')
+        except ValueError:
+            print('Erro aos ler os dados, verifique o arquivo fonte se não há dados faltando.')
+            return None
+
+        msg = MIMEMultipart()
+        msg['from'] = 'Fernando Mendes'
+        msg['to'] = ','.join(my_recipients)
+        msg['subject'] = f'Relatótios: {data()}'
+        corpo = MIMEText(f'Relatórios, {data()}\nPeriodo:\n{inicio}\n{termino}')
+        msg.attach(corpo)
+        try:
+
+            umidade = '/home/fernando/Área de Trabalho/Umidade.pdf'
+            pressao = '/home/fernando/Área de Trabalho/Pressao.pdf'
+            tempint = '/home/fernando/Área de Trabalho/Temp Int.pdf'
+            tempextr = '/home/fernando/Área de Trabalho/Temp Ext.pdf'
+
+            with open(umidade, 'rb') as pdf_umi:
+                anexo_U = MIMEApplication(pdf_umi.read(), _subtype='pdf')
+                pdf_umi.close()
+                anexo_U.add_header('Conteudo', umidade)
+                msg.attach(anexo_U)
+
+            with open(pressao, 'rb') as pdf_pre:
+                anexo_P = MIMEApplication(pdf_pre.read(), _subtype='pdf')
+                pdf_pre.close()
+                anexo_P.add_header('Conteudo', pressao)
+                msg.attach(anexo_P)
+
+            with open(tempint, 'rb') as pdf_T1:
+                anexo_T1 = MIMEApplication(pdf_T1.read(), _subtype='pdf')
+                pdf_T1.close()
+                anexo_T1.add_header('Conteudo', tempint)
+                msg.attach(anexo_T1)
+
+            with open(tempextr, 'rb') as pdf_T2:
+                anexo_T2 = MIMEApplication(pdf_T2.read(), _subtype='pdf')
+                pdf_umi.close()
+                anexo_T2.add_header('Conteudo', tempextr)
+                msg.attach(anexo_T2)
+
+            with smtplib.SMTP(host='smtp.gmail.com', port=587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.login(meu_email, minha_senha)
+                smtp.send_message(msg)
+                print('Email enviado com sucesso.')
+                return 1
+        except FileNotFoundError:
+            print('Email não enviado.')
+            return None
+
+
+main()
