@@ -83,16 +83,6 @@ def entry_inicio():
                 print('Digite somente 2 números entre 00 e 59.')
                 minuto = ''
                 continue
-        # segundo = ''
-        # while not segundo:
-        #     segundo = input('Digite os segundos(SS): ')
-        #     if segundo.isnumeric() and len(segundo) == 2 and 0 <= int(segundo) <= 59:
-        #         break
-        #     else:
-        #         print('Digite somente 2 números entre 00 e 59.')
-        #         segundo = ''
-        #         continue
-        entrada = True
         return retorno.data_inicio(dia, mes, ano, hora, minuto)
 
 
@@ -160,16 +150,6 @@ def entry_termino():
                 print('Digite somente 2 números entre 00 e 59.')
                 minuto = ''
                 continue
-        # segundo = ''
-        # while not segundo:
-        #     segundo = input('Digite os segundos(SS): ')
-        #     if segundo.isnumeric() and len(segundo) == 2 and 0 <= int(segundo) <= 59:
-        #         break
-        #     else:
-        #         print('Digite somente 2 números entre 00 e 59.')
-        #         segundo = ''
-        #         continue
-        entrada = True
         return retorno.data_termino(dia, mes, ano, hora, minuto)
 
 
@@ -274,7 +254,6 @@ def main():
                 smtp.login(meu_email, minha_senha)
                 smtp.send_message(msg)
                 print('Email enviado com sucesso.')
-                return 1
         except FileNotFoundError:
             print('Email não enviado.')
             return None
