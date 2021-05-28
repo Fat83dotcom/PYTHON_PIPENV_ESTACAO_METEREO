@@ -76,6 +76,7 @@ class EmailThread(Thread):
                 smtp.login(meu_email, minha_senha)
                 smtp.send_message(msg)
                 print('Email enviado com sucesso.')
+                return 1
         except FileNotFoundError:
             print('Email não enviado.')
             return None
@@ -110,7 +111,8 @@ def data():
     return data
 
 
-def plot_umidade(ux, uy, inicio):
+def plot_umidade(uy, inicio):
+    ux = range(len(uy))
     file = f'/home/fernando/Área de Trabalho/UMIDADE/Umidade{inicio}.pdf'
     plt.title(f'-> Inicio: {inicio}\n-> Termino: {data()}\nGráfico Umidade')
     plt.xlabel('Tempo em segundos.')
@@ -120,7 +122,8 @@ def plot_umidade(ux, uy, inicio):
     plt.clf()
 
 
-def plot_pressao(px, py, inicio):
+def plot_pressao(py, inicio):
+    px = range(len(py))
     file = f'/home/fernando/Área de Trabalho/PRESSAO/Pressao{inicio}.pdf'
     plt.title(f'-> Inicio: {inicio}\n-> Termino: {data()}\nGráfico Pressão')
     plt.xlabel('Tempo em segundos.')
@@ -130,7 +133,8 @@ def plot_pressao(px, py, inicio):
     plt.clf()
 
 
-def plot_temp1(t1x, t1y, inicio):
+def plot_temp1(t1y, inicio):
+    t1x = range(len(t1y))
     file = f'/home/fernando/Área de Trabalho/TEMP1/Temperatura_Interna{inicio}.pdf'
     plt.title(f'-> Inicio: {inicio}\n-> Termino: {data()}\nGráfico Temp Interna')
     plt.xlabel('Tempo em segundos.')
@@ -140,7 +144,8 @@ def plot_temp1(t1x, t1y, inicio):
     plt.clf()
 
 
-def plot_temp2(t2x, t2y, inicio):
+def plot_temp2(t2y, inicio):
+    t2x = range(len(t2y))
     file = f'/home/fernando/Área de Trabalho/TEMP2/Temperatura_Externa{inicio}.pdf'
     plt.title(f'-> Inicio: {inicio}\n-> Termino: {data()}\nGráfico Temp Externa')
     plt.xlabel('Tempo em segundos.')
@@ -156,6 +161,7 @@ def flagEntry():
     tentativa = 5
     while opition == '' and cont < tentativa:
         print(f'{cont  + 1}ª tentativa... {tentativa - (cont + 1)} restantes.')
+        print('Tempo padrão: 1 Hora.')
         opition = input('Deseja definir a frequencia dos gráficos ?[S/N]: ').upper()
         if opition[0] == 'S':
             call = call_tempo()
@@ -167,16 +173,16 @@ def flagEntry():
                 opition = ''
                 continue
         else:
-            print('Tempo padrão definido, 10 minutos.')
-            flag_entry = 600
+            print('Tempo padrão definido, 1 hora.')
+            flag_entry = 3600
             return flag_entry
-    print('O tempo padrão foi definito: 10 minutos.')
-    flag_entry = 600
+    print('O tempo padrão foi definito: 1 hora.')
+    flag_entry = 3600
     return flag_entry
 
 
 def call_tempo():
-    print('Intervalo máximo: 3 horas.')
+    print('Intervalo máximo: 6 horas.')
     print('Digite as horas, minutos e segundo para saida de gráficos: ')
     hora = input('Digite o tempo em horas: ')
     minuto = input('Digite o tempo em minutos: ')
@@ -185,8 +191,8 @@ def call_tempo():
         if 0 <= int(minuto) < 60 and 0 <= int(segundo) < 60:
             flag_entry = ConvertTempo(int(hora), int(minuto), int(segundo))
             flag_entry = flag_entry.soma_tempo()
-            if flag_entry > 10800:
-                flag_entry = 10800
+            if flag_entry > 21600:
+                flag_entry = 21600
                 print(f'Tempo definido em {flag_entry} segundos/ {flag_entry/3600} horas.')
                 return int(flag_entry)
             else:
@@ -210,13 +216,10 @@ def main():
         else:
             print(f'Parcial {cont3} --> {data()} <--')
         inicio = data()
-        ux = []
+
         uy = []
-        px = []
         py = []
-        t1x = []
         t1y = []
-        t2x = []
         t2y = []
         d1 = {
             'u': '',
@@ -247,23 +250,19 @@ def main():
                 try:
                     w = csv.writer(file)
                     w.writerow([data(), d1['u'], d1['p'], d1['1'], d1['2']])
-                    ux.append(cont2)
                     uy.append(float(d1['u']))
-                    px.append(cont2)
                     py.append(float(d1['p']))
-                    t1x.append(cont2)
                     t1y.append(float(d1['1']))
-                    t2x.append(cont2)
                     t2y.append(float(d1['2']))
                     cont2 += 1
                     time.sleep(1)
                 except ValueError:
                     print('error')
                     continue
-        plot_umidade(ux, uy, inicio)
-        plot_pressao(px, py, inicio)
-        plot_temp1(t1x, t1y, inicio)
-        plot_temp2(t2x, t2y, inicio)
+        plot_umidade(uy, inicio)
+        plot_pressao(py, inicio)
+        plot_temp1(t1y, inicio)
+        plot_temp2(t2y, inicio)
         cont3 += 1
         emaail = EmailThread(inicio)
         emaail.start()
